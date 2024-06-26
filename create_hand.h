@@ -82,16 +82,21 @@ std::ostream& operator<<(std::ostream& os, const Hand& x) {
     os << x.bits << "," << x.hand_rank << "," << x.profit;
     return os;
 }
+    
+const ll HEART_ROYAL   = HA | HK | HQ | HJ | HT;
+const ll SPADE_ROYAL   = SA | SK | SQ | SJ | ST;
+const ll CLUB_ROYAL    = CA | CK | CQ | CJ | CT;
+const ll DIAMOND_ROYAL = DA | DK | DQ | DJ | DT;
 
-const ll max_rank_bit           = 1ll << 63;
-const ll quad_rank_bit          = 1ll << 62;
-const ll full_rank_bit          = 1ll << 61;
-const ll flush_rank_bit         = 1ll << 60;
-const ll straight_rank_bit      = 1ll << 59;
-const ll threeOfKind_rank_bit   = 1ll << 58;
-const ll twoPair_rank_bit       = 1ll << 57;
-const ll onePair_rank_bit       = 1ll << 56;
-const ll aceKing_rank_bit       = 1ll << 55;
+const ll max_rank_bit           = 1ll << 62;
+const ll quad_rank_bit          = 1ll << 61;
+const ll full_rank_bit          = 1ll << 60;
+const ll flush_rank_bit         = 1ll << 59;
+const ll straight_rank_bit      = 1ll << 58;
+const ll threeOfKind_rank_bit   = 1ll << 57;
+const ll twoPair_rank_bit       = 1ll << 56;
+const ll onePair_rank_bit       = 1ll << 55;
+const ll aceKing_rank_bit       = 1ll << 54;
 
 std::vector<ll> create_bits() {
     std::vector<ll> nums;
@@ -123,6 +128,14 @@ ll _get_straight_with_count(ll bits, int count) {
     return 0;
 }
 
+bool royalFlush(ll bits) {
+    return ((bits & HEART_ROYAL) == HEART_ROYAL || (bits & SPADE_ROYAL) == SPADE_ROYAL || (bits & CLUB_ROYAL) == CLUB_ROYAL || (bits & DIAMOND_ROYAL) == DIAMOND_ROYAL);
+}
+
+bool straightFlush(ll bits) {
+    return false;
+}
+
 
 ll aceKing(ll bits) {
     return bit_count(bits & (CA | DA | HA | SA)) == 1 && bit_count(bits & (CK | DK | HK | SK)) == 1;
@@ -147,23 +160,23 @@ ll straight(ll bits) {
 
 
 bool royalFlush_flush(ll bits) {
-    return aceKing(bits) && straight(bits) && flush_flush(bits);
+    return royalFlush(bits) && flush_flush(bits);
 }
 
 bool royalFlush_straight(ll bits) {
-    return aceKing(bits) && straight_straight(bits) && flush_flush(bits);
+    return royalFlush(bits) && straight_straight(bits);
 }
 
 bool straightFlush_straightFlush(ll bits) {
-    return false;
+    return straight_straight(bits) && flush_flush(bits);
 }
 
 bool straightFlush_flush(ll bits) {
-    return false;
+    return straight(bits) && flush_flush(bits);
 }
 
 bool straightFlush_straight(ll bits) {
-    return false;
+    return straight_straight(bits) && straightFlush(bits);
 }
 
 bool straightFlush_ace_king(ll bits) {
@@ -219,14 +232,6 @@ ll onePair_aceKing(ll bits) {
     return false;
 }
 
-bool royalFlush(ll bits) {
-    return false;
-}
-
-bool straightFlush(ll bits) {
-    return false;
-}
-
 ll quads(ll bits) {
     return false;
 }
@@ -266,42 +271,42 @@ Hand create_hand(ll bits) {
     current_hand.bits      = bits;
     current_hand.hand_rank = 0;
     if (royalFlush_straightFlush(bits)) {
-        current_hand.hand_rank |= max_rank_bit;
+        current_hand.hand_rank  = max_rank_bit;
         current_hand.profit     = 150 * 2;
         return current_hand;
     }
     if (royalFlush_flush(bits)) {
-        current_hand.hand_rank |= max_rank_bit;
+        current_hand.hand_rank  = max_rank_bit;
         current_hand.profit     = 105 * 2;
         return current_hand;
     }
 
     if (royalFlush_straight(bits)) {
-        current_hand.hand_rank |= max_rank_bit;
+        current_hand.hand_rank  = max_rank_bit;
         current_hand.profit     = 104 * 2;
         return current_hand;
     }
 
     if (straightFlush_straightFlush(bits)) {
-        current_hand.hand_rank |= max_rank_bit;
+        current_hand.hand_rank  = max_rank_bit;
         current_hand.profit     = 100 * 2;
         return current_hand;
     }
 
     if (straightFlush_flush(bits)) {
-        current_hand.hand_rank |= max_rank_bit;
+        current_hand.hand_rank  = max_rank_bit;
         current_hand.profit     = 55 * 2;
         return current_hand;
     }
-
+    
     if (straightFlush_straight(bits)) {
-        current_hand.hand_rank |= max_rank_bit;
+        current_hand.hand_rank  = max_rank_bit;
         current_hand.profit     = 54 * 2;
         return current_hand;
     }
 
     if (straightFlush_ace_king(bits)) {
-        current_hand.hand_rank |= max_rank_bit;
+        current_hand.hand_rank  = max_rank_bit;
         current_hand.profit     = 51 * 2;
         return current_hand;
     }
