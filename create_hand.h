@@ -14,6 +14,64 @@ using std::endl;
 #define ull unsigned long long
 #define bit_count __builtin_popcountll
 
+
+
+const ll C2 = 1ll << 1;
+const ll C3 = 1ll << 2;
+const ll C4 = 1ll << 3;
+const ll C5 = 1ll << 4;
+const ll C6 = 1ll << 5;
+const ll C7 = 1ll << 6;
+const ll C8 = 1ll << 7;
+const ll C9 = 1ll << 8;
+const ll CT = 1ll << 9;
+const ll CJ = 1ll << 10;
+const ll CQ = 1ll << 11;
+const ll CK = 1ll << 12;
+const ll CA = 1ll << 13;
+
+const ll D2 = 1ll << 14;
+const ll D3 = 1ll << 15;
+const ll D4 = 1ll << 16;
+const ll D5 = 1ll << 17;
+const ll D6 = 1ll << 18;
+const ll D7 = 1ll << 19;
+const ll D8 = 1ll << 20;
+const ll D9 = 1ll << 21;
+const ll DT = 1ll << 22;
+const ll DJ = 1ll << 23;
+const ll DQ = 1ll << 24;
+const ll DK = 1ll << 25;
+const ll DA = 1ll << 26;
+
+const ll H2 = 1ll << 27;
+const ll H3 = 1ll << 28;
+const ll H4 = 1ll << 29;
+const ll H5 = 1ll << 30;
+const ll H6 = 1ll << 31;
+const ll H7 = 1ll << 32;
+const ll H8 = 1ll << 33;
+const ll H9 = 1ll << 34;
+const ll HT = 1ll << 35;
+const ll HJ = 1ll << 36;
+const ll HQ = 1ll << 37;
+const ll HK = 1ll << 38;
+const ll HA = 1ll << 39;
+
+const ll S2 = 1ll << 40;
+const ll S3 = 1ll << 41;
+const ll S4 = 1ll << 42;
+const ll S5 = 1ll << 43;
+const ll S6 = 1ll << 44;
+const ll S7 = 1ll << 45;
+const ll S8 = 1ll << 46;
+const ll S9 = 1ll << 47;
+const ll ST = 1ll << 48;
+const ll SJ = 1ll << 49;
+const ll SQ = 1ll << 50;
+const ll SK = 1ll << 51;
+const ll SA = 1ll << 52;
+
 struct Hand {
     ll bits;
     ll hand_rank;
@@ -65,12 +123,35 @@ ll _get_straight_with_count(ll bits, int count) {
     return 0;
 }
 
+
+ll aceKing(ll bits) {
+    return bit_count(bits & (CA | DA | HA | SA)) == 1 && bit_count(bits & (CK | DK | HK | SK)) == 1;
+}
+
+ll straight_straight(ll bits) {
+    return _get_straight_with_count(bits, 6);
+}
+
+ll flush_flush(ll bits) {
+    for (int i = 0; i < 4; i++) {
+        ll cur = bits & ((1ll << 14) - 1);
+        if (bit_count(cur) == 6) return flush_rank_bit | (cur & (cur - 1));
+        bits >>= 13;
+    }
+    return 0;
+}
+
+ll straight(ll bits) {
+    return _get_straight_with_count(bits, 5);
+}
+
+
 bool royalFlush_flush(ll bits) {
-    return false;
+    return aceKing(bits) && straight(bits) && flush_flush(bits);
 }
 
 bool royalFlush_straight(ll bits) {
-    return false;
+    return aceKing(bits) && straight_straight(bits) && flush_flush(bits);
 }
 
 bool straightFlush_straightFlush(ll bits) {
@@ -105,15 +186,6 @@ ll full_aceKing(ll bits) {
     return false;
 }
 
-
-ll flush_flush(ll bits) {
-    for (int i = 0; i < 4; i++) {
-        ll cur = bits & ((1ll << 14) - 1);
-        if (bit_count(cur) == 6) return flush_rank_bit | (cur & (cur - 1));
-        bits >>= 13;
-    }
-    return 0;
-}
 
 ll flush_straight(ll bits) {
     return false;
@@ -172,10 +244,6 @@ ll flush(ll bits) {
     return 0;
 }
 
-ll straight(ll bits) {
-    return _get_straight_with_count(bits, 5);
-}
-
 ll threeOfKind(ll bits) {
     return false;
 }
@@ -186,14 +254,6 @@ ll twoPair(ll bits) {
 
 ll onePair(ll bits) {
     return false;
-}
-
-ll aceKing(ll bits) {
-    return false;
-}
-
-ll straight_straight(ll bits) {
-    return _get_straight_with_count(bits, 6);
 }
 
 bool royalFlush_straightFlush(ll bits) {
