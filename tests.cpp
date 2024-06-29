@@ -40,7 +40,7 @@ void run_tests(std::vector<Test> tests, std::string name_of_test) {
 
 
 void royalFlush_straightFlush_test() {
-        std::vector<Test> tests = {
+    std::vector<Test> tests = {
         {CA | CK | CQ | CJ | CT | C9, 300, max_rank_bit},
         {DA | DK | DQ | DJ | DT | D9, 300, max_rank_bit},
         {HA | HK | HQ | HJ | HT | H9, 300, max_rank_bit},
@@ -84,7 +84,7 @@ void straight_tests() {
 }
 
 void straight_straight_tests() {
-        std::vector<Test> tests = {
+    std::vector<Test> tests = {
         {C2 | C3 | D4 | D5 | H6 | H7, 16, straight_rank_bit | C7},
         {H3 | C4 | D5 | H6 | C7 | H8, 16, straight_rank_bit | C8},
         {D4 | C5 | H6 | S7 | S8 | C9, 16, straight_rank_bit | C9},
@@ -139,7 +139,7 @@ void flush_tests() {
 }
 
 void flush_flush_tests() {
-        std::vector<Test> tests = {
+    std::vector<Test> tests = {
         {CA | CK | CQ | CJ | C9 | C8, 20, flush_rank_bit | CA | CK | CQ | CJ | C9},
         {DA | DK | DQ | DJ | D9 | D6, 20, flush_rank_bit | CA | CK | CQ | CJ | C9},
         {HA | HK | HQ | HJ | H9 | H2, 20, flush_rank_bit | CA | CK | CQ | CJ | C9},
@@ -499,7 +499,7 @@ void twoPair_twoPair_tests() {
 }
 
 void twoPair_aceKing_tests() {
-        std::vector<Test> tests = {
+    std::vector<Test> tests = {
         {SQ | DQ | H6 | D6 | CA | HK, 6, twoPair_rank_bit | DQ | D6 | CA },
         {CK | DK | HQ | CQ | SA | H5, 6, twoPair_rank_bit | DK | DQ | CA },
         {SA | CA | D2 | S2 | DK | H4, 6, twoPair_rank_bit | DA | D2 | CK },
@@ -513,11 +513,9 @@ void twoPair_aceKing_tests() {
         {HK | CK | D3 | H3 | CA | D2, 6, twoPair_rank_bit | DK | D3 | CA },
         {CQ | HQ | D5 | H5 | DA | CK, 6, twoPair_rank_bit | DQ | D5 | CA },
         {C8 | H8 | D5 | H5 | HA | DK, 6, twoPair_rank_bit | D8 | D5 | CA },
-
         {HK | CK | D3 | H3 | CA, 6, twoPair_rank_bit | DK | D3 | CA },
         {CK | HK | D5 | H5 | DA, 6, twoPair_rank_bit | DK | D5 | CA },
         {CK | HK | D5 | H5 | HA, 6, twoPair_rank_bit | DK | D5 | CA },
-    
         {HK | C3 | D3 | HA | CA, 6, twoPair_rank_bit | DA | D3 | CK },
         {CK | H5 | D5 | HA | DA, 6, twoPair_rank_bit | DA | D5 | CK },
         {CK | H5 | D5 | CA | HA, 6, twoPair_rank_bit | DA | D5 | CK },
@@ -525,8 +523,34 @@ void twoPair_aceKing_tests() {
     run_tests(tests, "twoPair_Aceking Tests");
 }
 
+void pair_aceKing_tests() {
+    std::vector<Test> tests = {
+        {SQ | DQ | C6 | D4 | DA | HK, 4, onePair_rank_bit | DQ | CA | CK | C6},
+        {HQ | SQ | S2 | S3 | CA | DK, 4, onePair_rank_bit | DQ | CA | CK | C3},
+        {SQ | CQ | H9 | D4 | SA | SK, 4, onePair_rank_bit | DQ | CA | CK | C9},
+        {CT | DT | SJ | C9 | CA | HK, 4, onePair_rank_bit | DT | CA | CK | CJ},
+        {D8 | H8 | DQ | H3 | HA | DK, 4, onePair_rank_bit | D8 | CA | CK | CQ},
+        {SK | DK | DQ | CJ | DA | H9, 4, onePair_rank_bit | DK | CA | CQ | CJ},
+        {CK | HK | HT | D3 | HA | D2, 4, onePair_rank_bit | DK | CA | CT | C3},
+        {HK | DK | SJ | ST | DA | S9, 4, onePair_rank_bit | DK | CA | CJ | CT},
+        {DK | CK | H2 | C3 | CA | H4, 4, onePair_rank_bit | DK | CA | C4 | C3},
+        {CK | DK | C5 | H6 | SA | S7, 4, onePair_rank_bit | DK | CA | C7 | C6},
+        {SK | HK | HQ | HT | DA | C2, 4, onePair_rank_bit | DK | CA | CQ | CT},
+        {SA | DA | HK | DT | D9 | C8, 4, onePair_rank_bit | DA | CK | CT | C9},
+        {CA | SA | DK | C2 | H3 | H4, 4, onePair_rank_bit | DA | CK | C4 | C3},
+        {HA | DA | CK | DQ | CJ | S9, 4, onePair_rank_bit | DA | CK | CQ | CJ},
+        {SA | CA | SK | H4 | S3 | H2, 4, onePair_rank_bit | DA | CK | C4 | C3},
+        {SA | HA | HK | S5 | C3 | D2, 4, onePair_rank_bit | DA | CK | C5 | C3},
+        {HA | DA | CK | D8 | S3 | H2, 4, onePair_rank_bit | DA | CK | C8 | C3},
+    };
+    run_tests(tests, "PairAceKing Tests");
+}
+
+
+
 int main() {
-    // STRAİGHT VE PAIR ide ekle
+    // perft testi oluşturduğun filter fonksiyonu ile yapman çok daha basit olur ve matematik kullanarak
+
     royalFlush_straightFlush_test();
     royalFlush_flush_tests();
     royalFlush_straight_test();
@@ -546,6 +570,8 @@ int main() {
     threeOfKind_aceKing_tests();
     twoPair_twoPair_tests();
     twoPair_aceKing_tests();
+    pair_aceKing_tests();
+    
     straight_tests();
     flush_tests();
 }

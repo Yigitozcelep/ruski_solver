@@ -80,6 +80,10 @@ const ll COLOR_COUNT = 4;
 const ll SET_FIRST_SUIT = (ACE << 1) - 1;
 const ll KINGS = HK | DK | CK | SK;
 const ll ACES  = DA | CA | HA | SA;
+const ll CLUBS = (1ll << 13) - 1;
+const ll DIAMONDS = (1ll << 26) - 1 ^ CLUBS;
+const ll HEARTS = (1ll << 39) - 1 ^ DIAMONDS ^ CLUBS;
+const ll SPADES = (1ll << 52) - 1 ^ HEARTS ^ DIAMONDS ^ CLUBS;
 
 struct Hand {
     ll bits;
@@ -125,6 +129,10 @@ std::vector<ll> create_bits() {
         }
     }
     return nums;
+}
+
+ll convert_hand_to_just_ranks(ll bits) {
+    return (bits & SPADES) >> 39 | (bits & HEARTS) >> 26 | (bits & DIAMONDS) >> 13 | (bits & CLUBS);
 }
 
 ll _get_straight_with_count(ll bits, int count) {
@@ -281,23 +289,32 @@ ll threeOfKind_aceKing(ll bits) {
 }
 
 ll twoPair_twoPair(ll bits) {
-    ll res = _get_same_cards(bits, 2, 3, threeOfKind_rank_bit);
+    ll res = _get_same_cards(bits, 2, 3, twoPair_rank_bit);
     if (!res) return 0;
     ll last = res & -res;
     return twoPair_rank_bit | last | ((res & SET_FIRST_SUIT) ^ last) << 13;
 }
 
 ll twoPair_aceKing(ll bits) {
-    ll res = _get_same_cards(bits, 2, 2, twoPair_rank_bit);
+    ll res = _get_same_cards(bits, 2, 2, 0);
     if (!res) return 0;
-    res = twoPair_rank_bit | (res ^ twoPair_rank_bit) << 13;
+    res = twoPair_rank_bit | res << 13;
     if (aceKing(bits) || (bit_count(bits & KINGS) == 2 && bit_count(bits & ACES) == 1)) return res | ACE;
     if (bit_count(bits & KINGS) == 1 && bit_count(bits & ACES) == 2) return res | KING;
     return 0;
 }
 
 ll onePair_aceKing(ll bits) {
-    return false;
+    ll res = _get_same_cards(bits, 2, 1, 0);
+    if (!res) return 0;
+    if (aceKing(bits) || (bit_count(bits & KINGS) == 2 && bit_count(bits & ACES) == 1) || (bit_count(bits & KINGS) == 1 && bit_count(bits & ACES) == 2)) {
+        ll ranks = convert_hand_to_just_ranks(bits) ^ res;
+        if (bit_count(ranks) == 4) {
+            return (ranks & (ranks - 1)) | res << 13 | onePair_rank_bit;
+        }
+        return ranks | res << 13 | onePair_rank_bit;
+    }
+    return 0;
 }
 
 ll quads(ll bits) {
