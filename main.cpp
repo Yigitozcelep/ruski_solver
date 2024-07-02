@@ -7,5 +7,5 @@
 // HAND COMPERSION TESTS LERIDE LAZIM
 int main() {
     //std::vector<Hand> hands = get_every_hand();
-    create_hand(DT | DJ | DQ | DK | DA | SA);
+    create_hand(CK | CQ | CJ | CT | C9 | D5);
 }

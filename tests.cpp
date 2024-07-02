@@ -546,16 +546,107 @@ void pair_aceKing_tests() {
     run_tests(tests, "PairAceKing Tests");
 }
 
+void royalFlush_tests() {
+    std::vector<Test> tests = {
+        {CA | CK | CQ | CJ | CT | H2, 200, max_rank_bit},
+        {DA | DK | DQ | DJ | DT | H2, 200, max_rank_bit},
+        {SA | SK | SQ | SJ | ST | H2, 200, max_rank_bit},
+        {HA | HK | HQ | HJ | HT | C2, 200, max_rank_bit},
+        
+        {CA | CK | CQ | CJ | CT | D8, 200, max_rank_bit},
+        {DA | DK | DQ | DJ | DT | H5, 200, max_rank_bit},
+        {SA | SK | SQ | SJ | ST | C6, 200, max_rank_bit},
+        {HA | HK | HQ | HJ | HT | D4, 200, max_rank_bit},
+    };
+    run_tests(tests, "royalFlush Tests");
+}
+
+
+void straightFlush_tests() {
+    std::vector<Test> tests = {
+        {CK | CQ | CJ | CT | C9 | D5, 100, max_rank_bit},
+        {CQ | CJ | CT | C9 | C8 | D2, 100, max_rank_bit},
+        {CJ | CT | C9 | C8 | C7 | H3, 100, max_rank_bit},
+        {DT | D9 | D8 | D7 | D6 | HA, 100, max_rank_bit},
+        {D9 | D8 | D7 | D6 | D5 | SQ, 100, max_rank_bit},
+        {D8 | D7 | D6 | D5 | D4 | HT, 100, max_rank_bit},
+        {H7 | H6 | H5 | H4 | H3 | CT, 100, max_rank_bit},
+        {H6 | H5 | H4 | H3 | H2 | C9, 100, max_rank_bit},
+        {HK | HQ | HJ | HT | H9 | C3, 100, max_rank_bit},
+        {SQ | SJ | ST | S9 | S8 | C2, 100, max_rank_bit},
+        {SJ | ST | S9 | S8 | S7 | HK, 100, max_rank_bit},
+        {ST | S9 | S8 | S7 | S6 | DK, 100, max_rank_bit},
+        {S6 | S5 | S4 | S3 | S2 | CT, 100, max_rank_bit},
+        {H6 | H5 | H4 | H3 | H2 | C8, 100, max_rank_bit},
+        {C6 | C5 | C4 | C3 | C2 | D8, 100, max_rank_bit},
+        {D6 | D5 | D4 | D3 | D2 | S8, 100, max_rank_bit},
+    };
+    run_tests(tests, "StraightFlush Tests");
+}
+
+void quads_test() {
+    std::vector<Test> tests = {
+        {CA | DA | SA | HA | CA | DJ, 40, quad_rank_bit | CA},
+        {CA | DA | HA | SA | CA | ST, 40, quad_rank_bit | CA},
+        {CA | DA | HA | SA | CA | H9, 40, quad_rank_bit | CA},
+        {CA | DA | HA | SA | CA | C8, 40, quad_rank_bit | CA},
+        {CK | DK | SK | HK | CK | D3, 40, quad_rank_bit | CK},
+        {CK | DK | HK | SK | CK | S2, 40, quad_rank_bit | CK},
+        {CK | DK | HK | SK | CK | H4, 40, quad_rank_bit | CK},
+        {CK | DK | HK | SK | CK | C5, 40, quad_rank_bit | CK},
+        {CQ | DQ | SQ | HQ | CA | DJ, 40, quad_rank_bit | CQ},
+        {CJ | DJ | HJ | SJ | CJ | SQ, 40, quad_rank_bit | CJ},
+        {CT | DT | HT | ST | CT | HK, 40, quad_rank_bit | CT},
+        {C9 | D9 | H9 | S9 | C9 | C8, 40, quad_rank_bit | C9},
+        {C5 | D5 | S5 | H5 | C5 | DA, 40, quad_rank_bit | C5},
+        {C4 | D4 | H4 | S4 | C4 | SK, 40, quad_rank_bit | C4},
+        {C3 | D3 | H3 | S3 | C3 | H2, 40, quad_rank_bit | C3},
+        {C2 | D2 | H2 | S2 | C2 | CA, 40, quad_rank_bit | C2},
+    };
+    run_tests(tests, "Quads_aceKing Tests");
+}
+
+void full_tests() {
+    std::vector<Test> tests = {
+        {CA | DA | HA | SK | CK | CJ, 14, full_rank_bit | CA | CK},
+        {CA | DA | HA | SQ | CQ | DT, 14, full_rank_bit | CA | CQ},
+        {SA | HA | CA | SK | CK | C5, 14, full_rank_bit | CA | CK},
+        {CA | DA | HA | SK | CK | D2, 14, full_rank_bit | CA | CK},
+        {CA | DA | HA | SK | CK | H3, 14, full_rank_bit | CA | CK},
+        {SA | HA | CA | S2 | C2 | S8, 14, full_rank_bit | CA | C2},
+        {CA | DA | HA | S2 | C2 | CQ, 14, full_rank_bit | CA | C2},
+        {CQ | DQ | HQ | SJ | CJ | S5, 14, full_rank_bit | CQ | CJ},
+        {CJ | DJ | HJ | S2 | C2 | DA, 14, full_rank_bit | CJ | C2},
+        {C9 | D9 | H9 | S6 | C6 | HK, 14, full_rank_bit | C9 | C6},
+        {C7 | D7 | H7 | S5 | C5 | D9, 14, full_rank_bit | C7 | C5},
+        {C4 | D4 | H4 | S2 | C2 | C6, 14, full_rank_bit | C4 | C2},
+        {C3 | D3 | H3 | S2 | C2 | D8, 14, full_rank_bit | C3 | C2},
+    };
+    run_tests(tests, "Full Tests");
+}
+
+void straightFlush_aceKing_tests() {
+    std::vector<Test> tests = {
+        {SA | S2 | S3 | S4 | S5 | CK, 102, max_rank_bit},
+        {DA | D2 | D3 | D4 | D5 | CK, 102, max_rank_bit},
+        {HA | H2 | H3 | H4 | H5 | CK, 102, max_rank_bit},
+        {CA | C2 | C3 | C4 | C5 | DK, 102, max_rank_bit},
+    };
+    run_tests(tests, "StraightFlush_aceKing Tests");
+}
 
 
 int main() {
     // perft testi oluşturduğun filter fonksiyonu ile yapman çok daha basit olur ve matematik kullanarak
+    // straightFlush_aceking yapmayi unuttum
+    // hepsinin pairli versiyonuda var unutma
 
     royalFlush_straightFlush_test();
     royalFlush_flush_tests();
     royalFlush_straight_test();
     straightFlush_straightFlush_tests();
     straightFlush_flush_tests();
+    straightFlush_aceKing_tests();
     quads_full_tests();
     quads_aceKing_test();
     full_full_tests();
@@ -572,6 +663,10 @@ int main() {
     twoPair_aceKing_tests();
     pair_aceKing_tests();
     
-    straight_tests();
+    royalFlush_tests();
+    straightFlush_tests();
+    quads_test();
+    full_tests();
     flush_tests();
+    straight_tests();
 }

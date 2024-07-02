@@ -80,6 +80,8 @@ const ll COLOR_COUNT = 4;
 const ll SET_FIRST_SUIT = (ACE << 1) - 1;
 const ll KINGS = HK | DK | CK | SK;
 const ll ACES  = DA | CA | HA | SA;
+const ll QUENS = DQ | CQ | HQ | SQ;
+const ll TWOS  = C2 | H2 | D2 | S2;
 const ll CLUBS = (1ll << 13) - 1;
 const ll DIAMONDS = (1ll << 26) - 1 ^ CLUBS;
 const ll HEARTS = (1ll << 39) - 1 ^ DIAMONDS ^ CLUBS;
@@ -181,6 +183,8 @@ bool royalFlush(ll bits) {
 }
 
 bool straightFlush(ll bits) {
+    
+    
     return false;
 }
 
@@ -227,7 +231,10 @@ bool straightFlush_straight(ll bits) {
     return straight_straight(bits) && straightFlush(bits);
 }
 
-bool straightFlush_ace_king(ll bits) {
+bool straightFlush_aceKing(ll bits) {
+    ll res = straightFlush(bits);
+    if (!res || (bits & TWOS) == 0 || (bits & ACES) == 0) return 0;
+    if (bits & KINGS) return true;
     return false;
 }
 
@@ -253,7 +260,9 @@ ll full_aceKing(ll bits) {
     ll r1 = _get_same_cards(bits, 3, 1, full_rank_bit), r2 = _get_same_cards(bits, 2, 1, 0);
     if (!r1 || !r2) return 0;
     ll tot = bit_count(bits & ACES) + bit_count(bits & KINGS);
-    if (tot == 3 || tot == 4) return r1;
+    ll ace_count = bit_count(bits & ACES), king_count = bit_count(bits & KINGS);
+    tot = ace_count + king_count;
+    if ((tot == 3 && ace_count && king_count) || tot == 4) return r1;
     return 0;
 }
 
@@ -318,11 +327,13 @@ ll onePair_aceKing(ll bits) {
 }
 
 ll quads(ll bits) {
-    return false;
+    return _get_same_cards(bits, 4, 1, quad_rank_bit);
 }
 
 ll full(ll bits) {
-    return false;
+    ll r1 = _get_same_cards(bits, 3, 1, full_rank_bit), r2 = _get_same_cards(bits, 2, 1, full_rank_bit);
+    if (!r1 || !r2) return 0;
+    return r1 | r2;
 }
 
 ll threeOfKind(ll bits) {
@@ -387,7 +398,7 @@ Hand create_hand(ll bits) {
         return current_hand;
     }
 
-    else if (straightFlush_ace_king(bits)) {
+    else if (straightFlush_aceKing(bits)) {
         current_hand.hand_rank  = max_rank_bit;
         current_hand.profit     = 51 * 2;
         return current_hand;
