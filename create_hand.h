@@ -113,6 +113,20 @@ const ll twoPair_rank_bit       = 1ll << 56;
 const ll onePair_rank_bit       = 1ll << 55;
 const ll aceKing_rank_bit       = 1ll << 54;
 
+void print_bit_to_hand(ll bits) {
+    std::vector<std::string> suits = {"C", "D", "H", "S"};
+    std::vector<std::string> ranks = {"2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"};
+
+    for (int i = 0; i < COLOR_COUNT; i++) {
+        ll cur = bits & SET_FIRST_SUIT;
+        for (int j = 0; j < 13; j++) {
+            if (1ll << j & cur) cout << suits[i] << ranks[j] << " ";
+        }
+        bits >>= 13;
+    }
+}
+
+
 std::vector<ll> create_bits() {
     std::vector<ll> nums;
     ll limit = LAST_CARD << 1;
@@ -133,8 +147,12 @@ std::vector<ll> create_bits() {
     return nums;
 }
 
-ll convert_hand_to_just_ranks(ll bits) {
+ll _convert_hand_to_just_ranks(ll bits) {
     return (bits & SPADES) >> 39 | (bits & HEARTS) >> 26 | (bits & DIAMONDS) >> 13 | (bits & CLUBS);
+}
+
+bool has_one_aceKing(ll bits) {
+   return bit_count(bits & ACES) == 1 && bit_count(bits & KINGS) == 1;
 }
 
 ll _get_straight_with_count(ll bits, int count) {
@@ -183,14 +201,20 @@ bool royalFlush(ll bits) {
 }
 
 bool straightFlush(ll bits) {
-    
-    
-    return false;
+    ll res = _get_straight_with_count(bits, 5);
+    if (!res) return 0;
+    res ^= straight_rank_bit;
+    if (res == C5) res += C4 + C3 + C2 + CA;
+    else res += (res >> 1) + (res >> 2) + (res >> 3) + (res >> 4);
+    return bit_count(res & bits) == 5 || bit_count((res << 13) & bits) == 5 || bit_count((res << 26) & bits) == 5 || bit_count((res << 39) & bits) == 5;
 }
 
 
 ll aceKing(ll bits) {
-    return bit_count(bits & ACES) == 1 && bit_count(bits & KINGS) == 1;
+    if (!has_one_aceKing(bits)) return 0;
+    ll ranks = _convert_hand_to_just_ranks(bits);
+    while (bit_count(ranks) != 5) ranks = ranks & (ranks - 1);
+    return ranks | aceKing_rank_bit;
 }
 
 ll straight_straight(ll bits) {
@@ -280,13 +304,13 @@ ll flush_pair(ll bits) {
 }
 
 ll flush_aceKing(ll bits) {
-    ll r1 = flush(bits), r2 = aceKing(bits);
+    ll r1 = flush(bits), r2 = has_one_aceKing(bits);
     if (r1 && r2 && bit_count(bits & (HA | HK)) != 2 && bit_count(bits & (CA | CK)) != 2 && bit_count(bits & (SA | SK)) != 2 && bit_count(bits & (DA | DK)) != 2) return r1;
     return 0;
 }
 
 ll straight_aceKing(ll bits) {
-    ll r1 = straight(bits), r2 = aceKing(bits);
+    ll r1 = straight(bits), r2 = has_one_aceKing(bits);
     if (r1 && r2 && bit_count(bits) == 6) return r1;
     return 0;
 }
@@ -308,7 +332,7 @@ ll twoPair_aceKing(ll bits) {
     ll res = _get_same_cards(bits, 2, 2, 0);
     if (!res) return 0;
     res = twoPair_rank_bit | res << 13;
-    if (aceKing(bits) || (bit_count(bits & KINGS) == 2 && bit_count(bits & ACES) == 1)) return res | ACE;
+    if (has_one_aceKing(bits) || (bit_count(bits & KINGS) == 2 && bit_count(bits & ACES) == 1)) return res | ACE;
     if (bit_count(bits & KINGS) == 1 && bit_count(bits & ACES) == 2) return res | KING;
     return 0;
 }
@@ -316,8 +340,8 @@ ll twoPair_aceKing(ll bits) {
 ll onePair_aceKing(ll bits) {
     ll res = _get_same_cards(bits, 2, 1, 0);
     if (!res) return 0;
-    if (aceKing(bits) || (bit_count(bits & KINGS) == 2 && bit_count(bits & ACES) == 1) || (bit_count(bits & KINGS) == 1 && bit_count(bits & ACES) == 2)) {
-        ll ranks = convert_hand_to_just_ranks(bits) ^ res;
+    if (has_one_aceKing(bits) || (bit_count(bits & KINGS) == 2 && bit_count(bits & ACES) == 1) || (bit_count(bits & KINGS) == 1 && bit_count(bits & ACES) == 2)) {
+        ll ranks = _convert_hand_to_just_ranks(bits) ^ res;
         if (bit_count(ranks) == 4) {
             return (ranks & (ranks - 1)) | res << 13 | onePair_rank_bit;
         }
@@ -337,19 +361,30 @@ ll full(ll bits) {
 }
 
 ll threeOfKind(ll bits) {
-    return false;
+    return _get_same_cards(bits, 3, 1, threeOfKind_rank_bit);
 }
 
 ll twoPair(ll bits) {
-    return false;
+    ll res = _get_same_cards(bits, 2, 2, 0);
+    if (!res) return 0;
+    ll ranks = _convert_hand_to_just_ranks(bits) ^ res;
+    while (bit_count(ranks) != 1) ranks = ranks & (ranks - 1);
+    
+    return res << 13 | twoPair_rank_bit | ranks;
 }
 
 ll onePair(ll bits) {
-    return false;
+    ll res = _get_same_cards(bits, 2, 1, 0);
+    if (!res) return 0;
+    
+    ll ranks = _convert_hand_to_just_ranks(bits) ^ res;
+    while (bit_count(ranks) != 3) ranks = ranks & (ranks - 1);
+    
+    return res << 13 | onePair_rank_bit | ranks;
 }
 
 bool royalFlush_straightFlush(ll bits) {
-    return (straight_straight(bits) && flush_flush(bits) && aceKing(bits));
+    return (straight_straight(bits) && flush_flush(bits) && has_one_aceKing(bits));
 }
 
 
@@ -539,6 +574,7 @@ Hand create_hand(ll bits) {
     else if (ll hand_rank = onePair(bits)) {
         current_hand.hand_rank = hand_rank;
         current_hand.profit    = 1 * 2;
+        return current_hand;
     }
 
     else if (ll hand_rank = aceKing(bits)) {

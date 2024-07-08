@@ -7,21 +7,6 @@ struct Test {
     ll hand_rank;
 };
 
-
-void print_bit_to_hand(ll bits) {
-    std::vector<std::string> suits = {"C", "D", "H", "S"};
-    std::vector<std::string> ranks = {"2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"};
-
-    for (int i = 0; i < COLOR_COUNT; i++) {
-        ll cur = bits & SET_FIRST_SUIT;
-        for (int j = 0; j < 13; j++) {
-            if (1ll << j & cur) cout << suits[i] << ranks[j] << " ";
-        }
-        bits >>= 13;
-    }
-}
-
-
 void run_tests(std::vector<Test> tests, std::string name_of_test) {
     bool flag = true;
     for (auto el: tests) {
@@ -603,7 +588,7 @@ void quads_test() {
         {C3 | D3 | H3 | S3 | C3 | H2, 40, quad_rank_bit | C3},
         {C2 | D2 | H2 | S2 | C2 | CA, 40, quad_rank_bit | C2},
     };
-    run_tests(tests, "Quads_aceKing Tests");
+    run_tests(tests, "Quads Tests");
 }
 
 void full_tests() {
@@ -635,6 +620,85 @@ void straightFlush_aceKing_tests() {
     run_tests(tests, "StraightFlush_aceKing Tests");
 }
 
+
+void threeOfKind_tests() {
+    std::vector<Test> tests = {
+        {CA | DA | SA | H7 | C5 | DJ, 6, threeOfKind_rank_bit | CA},
+        {CA | DA | HA | S9 | C3 | ST, 6, threeOfKind_rank_bit | CA},
+        {CA | DA | HA | ST | C2 | H9, 6, threeOfKind_rank_bit | CA},
+        {CA | DA | HA | SJ | C4 | C8, 6, threeOfKind_rank_bit | CA},
+        {CK | DK | HK | S5 | C4 | S2, 6, threeOfKind_rank_bit | CK},
+        {CK | DK | HK | ST | C6 | H4, 6, threeOfKind_rank_bit | CK},
+        {CK | DK | HK | ST | C8 | C5, 6, threeOfKind_rank_bit | CK},
+        {CQ | DQ | SQ | HA | C9 | DJ, 6, threeOfKind_rank_bit | CQ},
+        {CJ | DJ | HJ | SA | C5 | SQ, 6, threeOfKind_rank_bit | CJ},
+        {CT | DT | HT | S3 | C2 | HK, 6, threeOfKind_rank_bit | CT},
+        {C9 | D9 | H9 | S4 | C5 | C8, 6, threeOfKind_rank_bit | C9},
+        {C4 | D4 | H4 | S7 | CQ | SK, 6, threeOfKind_rank_bit | C4},
+        {C3 | D3 | H3 | SA | CT | H2, 6, threeOfKind_rank_bit | C3},
+        {C2 | D2 | H2 | S7 | CT | CA, 6, threeOfKind_rank_bit | C2},
+    };
+    run_tests(tests, "ThreeOfKind Tests");
+}
+
+void twoPair_tests() {
+    std::vector<Test> tests = {
+        {CA | DA | S8 | H8 | C5 | DJ, 4, twoPair_rank_bit | DA | D8 | CJ},
+        {CA | DA | H9 | S9 | C3 | ST, 4, twoPair_rank_bit | DA | D9 | CT},
+        {CA | DA | HT | ST | C2 | H9, 4, twoPair_rank_bit | DA | DT | C9},
+        {CA | DA | HJ | SJ | C4 | C8, 4, twoPair_rank_bit | DA | DJ | C8},
+        {CK | DK | H5 | S5 | C4 | S2, 4, twoPair_rank_bit | DK | D5 | C4},
+        {CK | DK | HT | ST | C6 | H4, 4, twoPair_rank_bit | DK | DT | C6},
+        {CK | DK | HT | ST | C8 | C5, 4, twoPair_rank_bit | DK | DT | C8},
+        {CQ | DQ | SA | HA | C9 | DJ, 4, twoPair_rank_bit | DQ | DA | CJ},
+        {CJ | DJ | HA | SA | C5 | SQ, 4, twoPair_rank_bit | DJ | DA | CQ},
+        {CT | DT | H3 | S3 | C2 | HK, 4, twoPair_rank_bit | DT | D3 | CK},
+        {C9 | D9 | H4 | S4 | C5 | C8, 4, twoPair_rank_bit | D9 | D4 | C8},
+        {C4 | D4 | H7 | S7 | CQ | SK, 4, twoPair_rank_bit | D4 | D7 | CK},
+        {C3 | D3 | HA | SA | CT | H2, 4, twoPair_rank_bit | D3 | DA | CT},
+        {C2 | D2 | H7 | S7 | CT | CA, 4, twoPair_rank_bit | D2 | D7 | CA},
+    };
+    run_tests(tests, "TwoPair Tests");
+}
+
+void onePair_tests() {
+    std::vector<Test> tests = {
+        {CA | DA | S8 | H9 | C5 | DJ, 2, onePair_rank_bit | DA | CJ | C9 | C8},
+        {CA | DA | H9 | SJ | C3 | ST, 2, onePair_rank_bit | DA | CJ | CT | C9},
+        {CA | DA | HT | SQ | C2 | H9, 2, onePair_rank_bit | DA | CQ | CT | C9},
+        {CA | DA | HJ | S3 | C4 | C8, 2, onePair_rank_bit | DA | CJ | C8 | C4},
+        {CK | DK | H5 | S4 | C3 | S2, 2, onePair_rank_bit | DK | C5 | C4 | C3},
+        {CK | DK | HT | S8 | C6 | H4, 2, onePair_rank_bit | DK | CT | C8 | C6},
+        {CK | DK | HT | S7 | C8 | C5, 2, onePair_rank_bit | DK | CT | C8 | C7},
+        {CQ | DQ | SA | H6 | C9 | DJ, 2, onePair_rank_bit | DQ | CA | CJ | C9},
+        {CJ | DJ | HA | S4 | C5 | SQ, 2, onePair_rank_bit | DJ | CA | CQ | C5},
+        {CT | DT | H3 | S4 | C2 | HK, 2, onePair_rank_bit | DT | CK | C4 | C3},
+        {C9 | D9 | H4 | ST | C5 | C8, 2, onePair_rank_bit | D9 | CT | C8 | C5},
+        {C4 | D4 | H7 | SJ | CQ | SK, 2, onePair_rank_bit | D4 | CK | CQ | CJ},
+        {C3 | D3 | HA | S8 | CT | H2, 2, onePair_rank_bit | D3 | CA | CT | C8},
+        {C2 | D2 | H7 | S9 | CT | CA, 2, onePair_rank_bit | D2 | CA | CT | C9},
+    };
+    run_tests(tests, "OnePair Tests");
+}
+
+void aceKing_tests() {
+    std::vector<Test> tests = {
+        {CA | DK | S8 | H9 | C5 | DJ, 2, aceKing_rank_bit | CA | CK | CJ | C9 | C8},
+        {CA | DK | H9 | SJ | C3 | ST, 2, aceKing_rank_bit | CA | CK | CJ | CT | C9},
+        {CA | DK | HT | SQ | C2 | H9, 2, aceKing_rank_bit | CA | CK | CQ | CT | C9},
+        {CA | DK | HJ | S3 | C4 | C8, 2, aceKing_rank_bit | CA | CK | CJ | C8 | C4},
+        {CA | DK | H6 | S4 | C3 | S2, 2, aceKing_rank_bit | CA | CK | C6 | C4 | C3},
+        {CA | DK | HT | S8 | C6 | H4, 2, aceKing_rank_bit | CA | CK | CT | C8 | C6},
+        {CA | DK | HT | S7 | C8 | C5, 2, aceKing_rank_bit | CA | CK | CT | C8 | C7},
+        {CQ | DK | SA | H6 | C9 | DJ, 2, aceKing_rank_bit | CA | CK | CQ | CJ | C9},
+        {CK | DJ | HA | S4 | C5 | SQ, 2, aceKing_rank_bit | CA | CK | CQ | CJ | C5},
+        {CA | DT | H3 | S4 | C2 | HK, 2, aceKing_rank_bit | CA | CK | CT | C4 | C3},
+        {CA | D4 | H7 | SJ | CQ | SK, 2, aceKing_rank_bit | CA | CK | CQ | CJ | C7},
+        {CK | D3 | HA | S8 | CT | H2, 2, aceKing_rank_bit | CA | CK | CT | C8 | C3},
+        {CK | D2 | H7 | S9 | CT | CA, 2, aceKing_rank_bit | CA | CK | CT | C9 | C7},
+    };
+    run_tests(tests, "aceKing Tests");
+}
 
 int main() {
     // perft testi oluşturduğun filter fonksiyonu ile yapman çok daha basit olur ve matematik kullanarak
@@ -669,4 +733,8 @@ int main() {
     full_tests();
     flush_tests();
     straight_tests();
+    threeOfKind_tests();
+    twoPair_tests();
+    onePair_tests();
+    aceKing_tests();
 }
