@@ -5,6 +5,8 @@
 #include <bitset>
 #include <algorithm>
 #include <vector>
+#include <fstream>
+
 
 using std::cin;
 using std::cout;
@@ -87,64 +89,82 @@ const ll DIAMONDS = (1ll << 26) - 1 ^ CLUBS;
 const ll HEARTS = (1ll << 39) - 1 ^ DIAMONDS ^ CLUBS;
 const ll SPADES = (1ll << 52) - 1 ^ HEARTS ^ DIAMONDS ^ CLUBS;
 
+const ll HEART_ROYAL   = HA | HK | HQ | HJ | HT;
+const ll SPADE_ROYAL   = SA | SK | SQ | SJ | ST;
+const ll CLUB_ROYAL    = CA | CK | CQ | CJ | CT;
+const ll DIAMOND_ROYAL = DA | DK | DQ | DJ | DT;
+
+const ll royalFlush_rank_bit    = 1ll << 62;
+const ll straightFlush_rank_bit = 1ll << 61;
+const ll quad_rank_bit          = 1ll << 60;
+const ll full_rank_bit          = 1ll << 59;
+const ll flush_rank_bit         = 1ll << 58;
+const ll straight_rank_bit      = 1ll << 57;
+const ll threeOfKind_rank_bit   = 1ll << 56;
+const ll twoPair_rank_bit       = 1ll << 55;
+const ll onePair_rank_bit       = 1ll << 54;
+const ll aceKing_rank_bit       = 1ll << 53;
+
+std::string print_bit_to_hand(ll bits) {
+    std::vector<std::string> suits = {"C", "D", "H", "S"};
+    std::vector<std::string> ranks = {"2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"};
+    std::string res = "";
+    
+    if (bits & royalFlush_rank_bit) res += "RoyalFlush: ";
+    if (bits & straightFlush_rank_bit) res += "StraightFlush: ";
+    if (bits & quad_rank_bit) res += "Quads: ";
+    if (bits & full_rank_bit) res += "Full: ";
+    if (bits & flush_rank_bit) res += "Flush: ";
+    if (bits & straight_rank_bit) res += "Straight: ";
+    if (bits & threeOfKind_rank_bit) res += "ThreeOfKind: ";
+    if (bits & twoPair_rank_bit) res += "TwoPair: ";
+    if (bits & onePair_rank_bit) res += "OnePair: ";
+    if (bits & aceKing_rank_bit) res += "AceKing: ";
+
+    for (int i = 0; i < COLOR_COUNT; i++) {
+        ll cur = bits & SET_FIRST_SUIT;
+        for (int j = 0; j < 13; j++) {
+            if (1ll << j & cur) res = res + suits[i] + ranks[j] + " ";
+        }
+        bits >>= 13;
+    }
+    return res;
+}
+
+
 struct Hand {
     ll bits;
     ll hand_rank;
     int profit;
 };
 
+bool hand_sorter(Hand const& lhs, Hand const& rhs) {
+    return lhs.hand_rank < rhs.hand_rank;
+}
+
 std::ostream& operator<<(std::ostream& os, const Hand& x) {
-    os << x.bits << "," << x.hand_rank << "," << x.profit;
+    os << print_bit_to_hand(x.bits) << ", " << print_bit_to_hand(x.hand_rank) << ", " << x.profit;
     return os;
 }
-    
-const ll HEART_ROYAL   = HA | HK | HQ | HJ | HT;
-const ll SPADE_ROYAL   = SA | SK | SQ | SJ | ST;
-const ll CLUB_ROYAL    = CA | CK | CQ | CJ | CT;
-const ll DIAMOND_ROYAL = DA | DK | DQ | DJ | DT;
 
-const ll max_rank_bit           = 1ll << 62;
-const ll quad_rank_bit          = 1ll << 61;
-const ll full_rank_bit          = 1ll << 60;
-const ll flush_rank_bit         = 1ll << 59;
-const ll straight_rank_bit      = 1ll << 58;
-const ll threeOfKind_rank_bit   = 1ll << 57;
-const ll twoPair_rank_bit       = 1ll << 56;
-const ll onePair_rank_bit       = 1ll << 55;
-const ll aceKing_rank_bit       = 1ll << 54;
-
-void print_bit_to_hand(ll bits) {
-    std::vector<std::string> suits = {"C", "D", "H", "S"};
-    std::vector<std::string> ranks = {"2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"};
-
-    for (int i = 0; i < COLOR_COUNT; i++) {
-        ll cur = bits & SET_FIRST_SUIT;
-        for (int j = 0; j < 13; j++) {
-            if (1ll << j & cur) cout << suits[i] << ranks[j] << " ";
-        }
-        bits >>= 13;
-    }
-}
-
-
-std::vector<ll> create_bits() {
-    std::vector<ll> nums;
+std::pair<std::vector<ll>, std::vector<ll>> create_bits() {
+    std::vector<ll> bits5, bits6;
     ll limit = LAST_CARD << 1;
     for (ll i = 1ll; i < limit; i <<= 1) {
         for (ll j = i << 1; j < limit; j <<= 1) {
             for (ll k = j << 1; k < limit; k <<= 1) {
                 for (ll l = k << 1; l < limit; l <<= 1) {
                     for (ll m = l << 1; m < limit; m <<= 1) {
-                        nums.push_back(i | j | k | l | m);
+                        bits5.push_back(i | j | k | l | m);
                         for (ll n = m << 1; n < limit; n <<= 1) {
-                           nums.push_back(i | j | k | l | m | n);
+                           bits6.push_back(i | j | k | l | m | n);
                         }
                     }
                 }
             }
         }
     }
-    return nums;
+    return std::make_pair(bits5, bits6);
 }
 
 ll _convert_hand_to_just_ranks(ll bits) {
@@ -195,25 +215,45 @@ ll straight_pair(ll bits) {
     return 0;
 }
 
+ll onePair(ll bits) {
+    ll res = _get_same_cards(bits, 2, 1, 0);
+    ll ranks = _convert_hand_to_just_ranks(bits) ^ res;
+    if (!res || bit_count(ranks) < 3) return 0;
+    while (bit_count(ranks) > 3) ranks = ranks & (ranks - 1);
+    return res << 13 | onePair_rank_bit | ranks;
+}
+
 
 bool royalFlush(ll bits) {
     return ((bits & HEART_ROYAL) == HEART_ROYAL || (bits & SPADE_ROYAL) == SPADE_ROYAL || (bits & CLUB_ROYAL) == CLUB_ROYAL || (bits & DIAMOND_ROYAL) == DIAMOND_ROYAL);
 }
 
-bool straightFlush(ll bits) {
+bool royalFLush_OnePair(ll bits) {
+    return royalFlush(bits) && onePair(bits);
+}
+
+ll straightFlush(ll bits) {
     ll res = _get_straight_with_count(bits, 5);
     if (!res) return 0;
-    res ^= straight_rank_bit;
-    if (res == C5) res += C4 + C3 + C2 + CA;
-    else res += (res >> 1) + (res >> 2) + (res >> 3) + (res >> 4);
-    return bit_count(res & bits) == 5 || bit_count((res << 13) & bits) == 5 || bit_count((res << 26) & bits) == 5 || bit_count((res << 39) & bits) == 5;
+    ll ranks = res ^ straight_rank_bit;
+    if (ranks == C5) ranks += C4 + C3 + C2 + CA;
+    else ranks += (ranks >> 1) + (ranks >> 2) + (ranks >> 3) + (ranks >> 4);
+    if (bit_count(ranks & bits) == 5 || bit_count((ranks << 13) & bits) == 5 || bit_count((ranks << 26) & bits) == 5 || bit_count((ranks << 39) & bits) == 5) return res ^ straight_rank_bit | straightFlush_rank_bit;
+    return 0;
+}
+
+ll straightFlush_pair(ll bits) {
+    ll r1 = straightFlush(bits), r2 = onePair(bits);
+    if (!r1 || !r2) return 0;
+    return r1;
 }
 
 
 ll aceKing(ll bits) {
     if (!has_one_aceKing(bits)) return 0;
     ll ranks = _convert_hand_to_just_ranks(bits);
-    while (bit_count(ranks) != 5) ranks = ranks & (ranks - 1);
+    if (bit_count(ranks) < 5) return 0;
+    while (bit_count(ranks) > 5) ranks = ranks & (ranks - 1);
     return ranks | aceKing_rank_bit;
 }
 
@@ -243,23 +283,29 @@ bool royalFlush_straight(ll bits) {
     return royalFlush(bits) && straight_straight(bits);
 }
 
-bool straightFlush_straightFlush(ll bits) {
-    return straight_straight(bits) && flush_flush(bits);
+ll straightFlush_straightFlush(ll bits) {
+    ll r1 = straight_straight(bits), r2 = flush_flush(bits);
+    if (!r1 || !r2) return 0;
+    return r1 ^ straight_rank_bit | straightFlush_rank_bit;
 }
 
-bool straightFlush_flush(ll bits) {
-    return straight(bits) && flush_flush(bits);
+ll straightFlush_flush(ll bits) {
+    ll r1 = straightFlush(bits), r2 = flush_flush(bits);
+    if (!r1 || !r2) return 0;
+    return r1;
 }
 
-bool straightFlush_straight(ll bits) {
-    return straight_straight(bits) && straightFlush(bits);
+ll straightFlush_straight(ll bits) {
+    ll r1 = straight_straight(bits), r2 = straightFlush(bits);
+    if (!r1 || !r2) return 0;
+    return r1;
 }
 
-bool straightFlush_aceKing(ll bits) {
+ll straightFlush_aceKing(ll bits) {
     ll res = straightFlush(bits);
     if (!res || (bits & TWOS) == 0 || (bits & ACES) == 0) return 0;
-    if (bits & KINGS) return true;
-    return false;
+    if (bits & KINGS) return res;
+    return 0;
 }
 
 ll quads_full(ll bits){
@@ -366,21 +412,11 @@ ll threeOfKind(ll bits) {
 
 ll twoPair(ll bits) {
     ll res = _get_same_cards(bits, 2, 2, 0);
-    if (!res) return 0;
     ll ranks = _convert_hand_to_just_ranks(bits) ^ res;
-    while (bit_count(ranks) != 1) ranks = ranks & (ranks - 1);
+    if (!res || bit_count(ranks) < 1) return 0;
+    while (bit_count(ranks) > 1) ranks = ranks & (ranks - 1);
     
     return res << 13 | twoPair_rank_bit | ranks;
-}
-
-ll onePair(ll bits) {
-    ll res = _get_same_cards(bits, 2, 1, 0);
-    if (!res) return 0;
-    
-    ll ranks = _convert_hand_to_just_ranks(bits) ^ res;
-    while (bit_count(ranks) != 3) ranks = ranks & (ranks - 1);
-    
-    return res << 13 | onePair_rank_bit | ranks;
 }
 
 bool royalFlush_straightFlush(ll bits) {
@@ -393,59 +429,71 @@ Hand create_hand(ll bits) {
     current_hand.bits      = bits;
     current_hand.hand_rank = 0;
     if (royalFlush_straightFlush(bits)) {
-        current_hand.hand_rank  = max_rank_bit;
+        current_hand.hand_rank  = royalFlush_rank_bit;
         current_hand.profit     = 150 * 2;
         return current_hand;
     }
     else if (royalFlush_flush(bits)) {
-        current_hand.hand_rank  = max_rank_bit;
+        current_hand.hand_rank  = royalFlush_rank_bit;
         current_hand.profit     = 105 * 2;
         return current_hand;
     }
 
     else if (royalFlush_straight(bits)) {
-        current_hand.hand_rank  = max_rank_bit;
+        current_hand.hand_rank  = royalFlush_rank_bit;
         current_hand.profit     = 104 * 2;
         return current_hand;
     }
 
-    else if (straightFlush_straightFlush(bits)) {
-        current_hand.hand_rank  = max_rank_bit;
+    else if (royalFLush_OnePair(bits)) {
+        current_hand.hand_rank  = royalFlush_rank_bit;
+        current_hand.profit     = 101 * 2;
+        return current_hand;
+    }
+
+    else if (ll hand_rank = straightFlush_straightFlush(bits)) {
+        current_hand.hand_rank  = hand_rank;
         current_hand.profit     = 100 * 2;
         return current_hand;
     }
 
     else if (royalFlush(bits)) {
-        current_hand.hand_rank = max_rank_bit;
+        current_hand.hand_rank = royalFlush_rank_bit;
         current_hand.profit    = 100 * 2;
         return current_hand;
     }
 
-    else if (straightFlush_flush(bits)) {
-        current_hand.hand_rank  = max_rank_bit;
+    else if (ll hand_rank = straightFlush_flush(bits)) {
+        current_hand.hand_rank  = hand_rank;
         current_hand.profit     = 55 * 2;
         return current_hand;
     }
     
-    else if (straightFlush_straight(bits)) {
-        current_hand.hand_rank  = max_rank_bit;
+    else if (ll hand_rank = straightFlush_straight(bits)) {
+        current_hand.hand_rank  = hand_rank;
         current_hand.profit     = 54 * 2;
         return current_hand;
     }
 
-    else if (straightFlush_aceKing(bits)) {
-        current_hand.hand_rank  = max_rank_bit;
+    else if (ll hand_rank = straightFlush_pair(bits)) {
+        current_hand.hand_rank  = hand_rank;
         current_hand.profit     = 51 * 2;
         return current_hand;
     }
 
-    else if (straightFlush(bits)) {
-        current_hand.hand_rank = max_rank_bit;
+    else if (ll hand_rank = straightFlush_aceKing(bits)) {
+        current_hand.hand_rank  = hand_rank;
+        current_hand.profit     = 51 * 2;
+        return current_hand;
+    }
+
+    else if (ll hand_rank = straightFlush(bits)) {
+        current_hand.hand_rank = hand_rank;
         current_hand.profit    = 50 * 2;
         return current_hand;
     }
     
-    else if (ll hand_rank = quads_full(bits)) {
+    if (ll hand_rank = quads_full(bits)) {
         current_hand.hand_rank  = hand_rank;
         current_hand.profit     = 27 * 2;
         return current_hand;
@@ -582,19 +630,9 @@ Hand create_hand(ll bits) {
         current_hand.profit    = 1 * 2;
         return current_hand;
     }
-    
     current_hand.hand_rank = 0;
     current_hand.profit    = 0;
     return current_hand;
-}
-
-std::vector<Hand> get_every_hand() {
-    std::vector<ll> bits = create_bits();
-    std::vector<Hand> hands;
-    for (auto el: bits) {
-        hands.push_back(create_hand(el));
-    }
-    return hands;
 }
 
 #endif
