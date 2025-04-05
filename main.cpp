@@ -1,6 +1,9 @@
 #include "create_hand.h"
 #include <random>
 #include <algorithm>
+#include <thread>
+#include <mutex>
+
 
 
 // MASA limiti muhabbeti ve sigorta ekle straight flush over straight flush a da baksın
@@ -9,6 +12,11 @@
 // eğer yavaş ise multi threading ekle
 // HAND COMPERSION TESTS LERIDE LAZIM
 // MEMORY SİZELARI DÜŞÜR
+// tek kart çekmeyi hesaplamasın çünkü onun yerine 6 kart olmak her daim avantajlı
+// get_profit doğru çalışmaz çekilen yeni kartlar bankadan çıkarılmıyor çünkü,
+// EXCLUDES LARIDA SADECE DIŞARDAKİ KARTLARI ŞEY YAPSIN
+// SIGORTA EKLE
+
 
 #define ull unsigned long long
 using namespace std;
@@ -53,7 +61,9 @@ float get_profit(Hand player_hand, vector<Hand>& banks) {
         else if (el.hand_rank > player_hand.hand_rank) res -= 3;
         else res += player_hand.profit;
     }
-    return (float)res / (float)banks.size();
+    float final_res = (float)res / (float)banks.size();
+    if (final_res < -1) final_res = -1;
+    return final_res;
 }
 
 ll get_includes(int i, ll bits) {
@@ -82,19 +92,27 @@ void print_hand_info(vector<Hand> hands) {
         else if (el.hand_rank & aceKing_rank_bit) aceKing++;
         else empty++;
     }
-    cout << "\n***************************\n";
-    cout << "empty: " << (float)empty / hands.size() << "\n";
-    cout << "aceKing: " << (float)aceKing / hands.size() << "\n";
-    cout << "onePair: " << (float)onePair / hands.size() << "\n";
-    cout << "twoPair: " << (float)twoPair / hands.size() << "\n";
-    cout << "threeOfKind: " << (float)threeOfKind / hands.size() << "\n";
-    cout << "staright: " << (float)straight / hands.size() << "\n";
-    cout << "flush: " << (float)flush / hands.size() << "\n";
-    cout << "full: " << (float)full / hands.size() << "\n";
-    cout << "quads: " << (float)quads / hands.size() << "\n";
-    cout << "straightFlush: " << (float)straightFlush / hands.size() << "\n";
-    cout << "royalFlush: " << (float)quads/ hands.size() << "\n";
-}   
+    cout << endl << "***************************" << endl;
+    cout << "empty: " << (float)empty / hands.size() << endl;
+    cout << "aceKing: " << (float)aceKing / hands.size() << endl;
+    cout << "onePair: " << (float)onePair / hands.size() << endl;
+    cout << "twoPair: " << (float)twoPair / hands.size() << endl;
+    cout << "threeOfKind: " << (float)threeOfKind / hands.size() << endl;
+    cout << "staright: " << (float)straight / hands.size() << endl;
+    cout << "flush: " << (float)flush / hands.size() << endl;
+    cout << "full: " << (float)full / hands.size() << endl;
+    cout << "quads: " << (float)quads / hands.size() << endl;
+    cout << "straightFlush: " << (float)straightFlush / hands.size() << endl;
+    cout << "royalFlush: " << (float)quads/ hands.size() << endl;
+}
+
+vector<Hand> filter_data(ll excludes, vector<Hand>& data) {
+    vector<Hand> res;
+    for (auto el: data) {
+        if ((el.bits & excludes) == 0) res.push_back(el);
+    }
+    return res;
+}
 
 struct Game {
     vector<Hand> h5, h6, banks;
@@ -112,48 +130,52 @@ struct Game {
     float get_result() {
         ll chosen_cards = 0;
         float max_res = get_profit(player_hand, banks);
-        cout << "\n----------------------------------\n";
-        cout << "hand: " << player_hand << "\n";
-        cout << "bank_card: " << print_bit_to_hand(bank_card) << "\n";
-        cout << "excludes: " << print_bit_to_hand(excludes ^ bank_card) << "\n";
-        cout << "res: " << max_res << "\n";
-        print_hand_info(banks);
+        float initial_res = max_res;
         for (int i = 1; i < 32; i++) {
             ll includes = get_includes(i, player_hand.bits);
-            ll bits = player_hand.bits;
-            ll cur_res = 0;
-            vector<Hand> new_bank;
-            for (auto el: banks) {
-                if ((el.bits & includes) == 0) new_bank.push_back(el);
-            }
+            vector<Hand> new_bank = filter_data(includes, banks);
             ll count = 0;
             float res = 0;
             for (auto el: h5) {
                 if ((el.bits & includes) != includes) continue;
                 count++;
-                res += get_profit(el, new_bank);
+                vector<Hand> final_bank = filter_data(el.bits, new_bank);
+                res += get_profit(el, final_bank);
             }
             res = (res / count) - 1;
             if (res > max_res) {
                 max_res = res;
                 chosen_cards = includes;
             }
-            cout << "\n------------------------------\n";
-            cout << "i: " << i << "\n";
-            cout << "res: " << res << "\n";
-            cout << print_bit_to_hand(includes) << "\n";
         }
-
-        cout << "\n------------------------------\n";
-        cout << "max_res: " << max_res << "\n";
+        float card_6_res = 0;
+        for (auto el: h6) {
+            vector<Hand> new_bank = filter_data(el.bits, banks);
+            card_6_res += get_profit(el, new_bank);
+        }
+        card_6_res = (card_6_res / (h6.size())) - 1;
+        if (card_6_res > max_res) {
+            max_res = card_6_res;
+            chosen_cards = -1;
+        }
+        cout << endl << "------------------------------" << endl;
+        print_hand_info(banks);
+        cout << "hand: " << player_hand << endl;
+        cout << "intial_result: " << initial_res << endl;
+        cout << "bank_card: " << print_bit_to_hand(bank_card) << endl;
+        cout << "excludes: " << print_bit_to_hand(excludes ^ bank_card ^ player_hand.bits) << endl;
+        cout << "max_res: " << max_res << endl;
         if (chosen_cards) {
-            cout << "chosen_cards: " << print_bit_to_hand(chosen_cards) << "\n";
-        }
-        if (max_res < -1) max_res = -1;
+            if (chosen_cards == -1) cout << "one extra card is picked" << endl;
+            else cout << "chosen_cards: " << print_bit_to_hand(chosen_cards) << endl;
+        } else cout << "no card is chosen" << endl;
         return max_res;
     }
 
     void filter_banks() {
+        for (auto el: hands6){
+            if ((el.bits & excludes) == 0 && (el.bits & player_hand.bits) == player_hand.bits) h6.push_back(el);
+        }
         excludes = (bank_card ^ excludes) | player_hand.bits;
         for (auto el: hands5){
             if ((el.bits & excludes) == 0 && el.bits & bank_card) { banks.push_back(el); }
@@ -162,7 +184,6 @@ struct Game {
 
     void chose_player_hand() {
         ll index = rand.gen_num() % h5.size();
-        while (h5[index].hand_rank < threeOfKind_rank_bit) index = rand.gen_num() % h5.size();
         player_hand = h5[index];
         swap(h5[index], h5[h5.size() -1]);
         h5.pop_back();
@@ -171,9 +192,6 @@ struct Game {
     void filter_hands() {
         for (auto el: hands5){
             if ((el.bits & excludes) == 0) h5.push_back(el);
-        }
-        for (auto el: hands6){
-            if ((el.bits & excludes) == 0) h6.push_back(el);
         }
     }
 
@@ -190,7 +208,7 @@ struct Game {
 void writeToFile(const std::vector<Hand>& vec, const std::string& filename) {
     std::ofstream outFile(filename, std::ios::binary);
     if (!outFile) {
-        std::cerr << "Failed to open file for writing.\n";
+        std::cerr << "Failed to open file for writing" << endl;
         return;
     }
 
@@ -234,10 +252,13 @@ int main() {
     auto data = get_hands();
     hands5 = data.first;
     hands6 = data.second;
+
+    float res;
     Game game;
-    float res = 0;
     for (int i = 0; i < 100; i++) {
+        cout << "i: " << i << "\n";
         res += game.run_game();
     }
-    cout << "res: " << res / 100 << "\n";
+    res = res / 100;
+    cout << "final avarage: " << res << "\n";
 }
